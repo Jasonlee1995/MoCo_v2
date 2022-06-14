@@ -31,7 +31,7 @@ parser.add_argument('--moco-m',        default=0.999, type=float, help='moco mom
 parser.add_argument('--moco-t',        default=0.2, type=float, help='softmax temperature')
 
 parser.add_argument('--start-epoch',   default=0, type=int)
-parser.add_argument('--epochs',        default=800, type=int)
+parser.add_argument('--epochs',        default=200, type=int)
 parser.add_argument('--warmup-epochs', default=0, type=int)
 parser.add_argument('--min-lr',        default=1e-8, type=float)
 
@@ -41,11 +41,11 @@ parser.add_argument('--weight-decay',  default=1e-4, type=float)
 
 parser.add_argument('--resume',        default='', type=str, help='latest checkpoint')
 parser.add_argument('--save',          action='store_true', help='save logs, checkpoints')
-parser.add_argument('--save-name',     default='MoCo_ResNet50', type=str)
+parser.add_argument('--save-name',     default='MoCo_ResNet50_200', type=str)
 parser.add_argument('--save-freq',     default=1, type=int)
 parser.add_argument('--print-freq',    default=200, type=int)
-parser.add_argument('--log',           default='/home/jslee/ImageNet/MoCo/logs/', type=str)
-parser.add_argument('--checkpoint',    default='/home/jslee/ImageNet/MoCo/checkpoints/', type=str)
+parser.add_argument('--log',           default='./logs/', type=str)
+parser.add_argument('--checkpoint',    default='./checkpoints/', type=str)
 args = parser.parse_args()
 
 
