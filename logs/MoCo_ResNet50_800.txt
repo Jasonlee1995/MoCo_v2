@@ -17,11 +17,11 @@ momentum : 0.9
 weight_decay : 0.0001
 resume : 
 save : True
-save_name : MoCo_ResNet50
+save_name : MoCo_ResNet50_800
 save_freq : 1
 print_freq : 200
-log : /home/jslee/ImageNet/MoCo/logs/
-checkpoint : /home/jslee/ImageNet/MoCo/checkpoints/
+log : ./logs/
+checkpoint : ./checkpoints/
 --------------------------------------------------
 
 epoch,acc,lr,train_loss,train_time,val_loss,val_time
