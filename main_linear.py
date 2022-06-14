@@ -15,13 +15,14 @@ torch.backends.cudnn.benchmark = True
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--port-num',      default='9999', type=str)
-parser.add_argument('--world-size',    default=8, type=int, help='number of gpus for ddp')
+parser.add_argument('--world-size',    default=2, type=int, help='number of gpus for ddp')
 
 parser.add_argument('--data-dir',      default='/mnt/ssd1/ImageNet', type=str)
 parser.add_argument('--batch-size',    default=256, type=int)
 parser.add_argument('--num-workers',   default=8, type=int)
 
-parser.add_argument('--pretrained',    default='/home/jslee/ImageNet/MoCo/checkpoints/MoCo_ResNet50_0799.pth.tar', type=str)
+parser.add_argument('--pretrained',    default='./checkpoints/MoCo_ResNet50_800_0799.pth.tar', type=str)
+parser.add_argument('--model-type',    default='query', type=str)
 parser.add_argument('--num-classes',   default=1000, type=int)
 
 parser.add_argument('--epochs',        default=100, type=int)
@@ -35,8 +36,8 @@ parser.add_argument('--save',          action='store_true', help='save logs, che
 parser.add_argument('--save-name',     default='ResNet50_799_q', type=str)
 parser.add_argument('--save-freq',     default=1, type=int)
 parser.add_argument('--print-freq',    default=100, type=int)
-parser.add_argument('--log',           default='/home/jslee/ImageNet/MoCo/logs/', type=str)
-parser.add_argument('--checkpoint',    default='/home/jslee/ImageNet/MoCo/checkpoints/', type=str)
+parser.add_argument('--log',           default='./logs/', type=str)
+parser.add_argument('--checkpoint',    default='./checkpoints/', type=str)
 args = parser.parse_args()
 
 
@@ -73,7 +74,7 @@ def main(gpu, world_size):
                                               drop_last=False)
 
     # model
-    net = models_linear.ResNet50(args.pretrained, args.num_classes).cuda(gpu)
+    net = models_linear.ResNet50(args.num_classes, args.pretrained, args.model_type).cuda(gpu)
     net = DistributedDataParallel(net, device_ids=[gpu])
 
     # optimizer
