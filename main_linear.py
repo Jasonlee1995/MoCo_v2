@@ -62,7 +62,7 @@ def main(gpu, world_size):
                                                 num_workers=args.num_workers,
                                                 pin_memory=True,
                                                 drop_last=True)
-    
+
     val_dataset = data.FinetuneDB(os.path.join(args.data_dir, 'val'), transform=data.val_transform())
     val_sampler = DistributedSampler(val_dataset, rank=gpu, num_replicas=args.world_size, shuffle=False, drop_last=False)
     val_loader  = torch.utils.data.DataLoader(val_dataset,
@@ -87,9 +87,9 @@ def main(gpu, world_size):
     logger = utils.Logger(args)
     if dist.get_rank() == 0: logger.initialize()
 
-    
+
     for epoch in range(args.epochs):
-        
+
         # train
         net.train()
         if dist.get_rank() == 0: print('Epoch {} Train Started...'.format(epoch))
@@ -97,7 +97,7 @@ def main(gpu, world_size):
         train_loss = []
         train_start = time.time()
         lr = utils.step_scheduler(optimizer, epoch, args)
-        
+
         for i, (imgs, labels) in enumerate(train_loader):
             imgs, labels = imgs.cuda(gpu), labels.cuda(gpu)
             output = net(imgs)
@@ -113,12 +113,12 @@ def main(gpu, world_size):
                 print('Iteration : {:0>5}   LR : {:.6f}   Train Loss : {:.6f}'.format(i, lr, train_loss[-1]))
 
         train_time = time.strftime('%H:%M:%S', time.gmtime(time.time() - train_start))
-        
-        
-        # Val
+
+
+        # val
         net.eval()
         if dist.get_rank() == 0: print('Epoch {} Val Started...'.format(epoch))
-        
+
         val_start = time.time()
         with torch.no_grad():
             val_loss, correct = [], 0
@@ -129,18 +129,18 @@ def main(gpu, world_size):
 
                 predict = torch.argmax(output, 1)
                 c = (predict == labels).sum()
-                
+
                 dist.barrier()
                 dist.all_reduce(loss, op=dist.ReduceOp.SUM)
                 dist.all_reduce(c, op=dist.ReduceOp.SUM)
                 if dist.get_rank() == 0:
                     correct += c.item()
                     val_loss.append(loss.item() / args.world_size)
-                    
-        val_time = time.strftime('%H:%M:%S', time.gmtime(time.time() - val_start))
-        
 
-        # Print results
+        val_time = time.strftime('%H:%M:%S', time.gmtime(time.time() - val_start))
+
+
+        # print results
         if dist.get_rank() == 0:
             train_loss = sum(train_loss) / len(train_loss)
             val_loss = sum(val_loss) / len(val_loss)

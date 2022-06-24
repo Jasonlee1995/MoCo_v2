@@ -70,7 +70,7 @@ def main(gpu, world_size):
                                                 num_workers=args.num_workers,
                                                 pin_memory=True,
                                                 drop_last=True)
-    
+
     val_dataset = data.PretrainDB(os.path.join(args.data_dir, 'val'))
     val_sampler = DistributedSampler(val_dataset, rank=gpu, num_replicas=args.world_size, shuffle=True, drop_last=True)
     val_loader  = torch.utils.data.DataLoader(val_dataset,
@@ -94,7 +94,7 @@ def main(gpu, world_size):
     # logger
     logger = utils.Logger(args)
     if dist.get_rank() == 0: logger.initialize()
-        
+
     # resume
     if args.resume:
         checkpoint = torch.load(args.resume, map_location='cuda:{}'.format(gpu))
@@ -102,7 +102,7 @@ def main(gpu, world_size):
         net.module.encoder_q.load_state_dict(checkpoint['q_state_dict'])
         net.module.encoder_k.load_state_dict(checkpoint['k_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-    
+
     # epoch start
     for epoch in range(args.start_epoch, args.epochs):
         # train
@@ -128,12 +128,12 @@ def main(gpu, world_size):
                 print('Iteration : {:0>5}   LR : {:.6f}   Train Loss : {:.6f}'.format(i, lr, train_loss[-1]))
 
         train_time = time.strftime('%H:%M:%S', time.gmtime(time.time() - train_start))
-        
-        
-        # Val
+
+
+        # val
         net.eval()
         if dist.get_rank() == 0: print('Epoch {} Val Started...'.format(epoch))
-        
+
         val_start = time.time()
         with torch.no_grad():
             val_loss, val_acc = [], []
@@ -145,18 +145,18 @@ def main(gpu, world_size):
                 N = output.shape[0]
                 predict = torch.argmax(output, 1)
                 c = (predict == target).sum()
-                
+
                 dist.barrier()
                 dist.all_reduce(loss, op=dist.ReduceOp.SUM)
                 dist.all_reduce(c, op=dist.ReduceOp.SUM)
                 if dist.get_rank() == 0:
                     val_loss.append(loss.item() / args.world_size)
                     val_acc.append(100 * c.item() / (N * args.world_size))
-                    
-        val_time = time.strftime('%H:%M:%S', time.gmtime(time.time() - val_start))
-        
 
-        # Print results
+        val_time = time.strftime('%H:%M:%S', time.gmtime(time.time() - val_start))
+
+
+        # print results
         if dist.get_rank() == 0:
             train_loss = sum(train_loss) / len(train_loss)
             val_loss = sum(val_loss) / len(val_loss)
@@ -174,7 +174,7 @@ def main(gpu, world_size):
                 torch.save({'epoch' : epoch+1,
                             'q_state_dict' : net.module.encoder_q.state_dict(),
                             'k_state_dict' : net.module.encoder_k.state_dict(),
-                            'optimizer' : optimizer.state_dict()}, 
+                            'optimizer' : optimizer.state_dict()},
                              checkpoint)
 
             # update log
